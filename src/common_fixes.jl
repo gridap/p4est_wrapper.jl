@@ -103,7 +103,7 @@ const p8est_quadrant_data = quadrant_data
     ############################################
 
 struct full is_ghost::Int8; quad::Ptr{Cvoid}; quadid::p4est_locidx_t; end
-struct hanging{S} is_ghost::NTuple{S,Int8}; quad::Ptr{Cvoid}; quadid::NTuple{S,p4est_locidx_t}; end
+struct hanging{S} is_ghost::NTuple{S,Int8}; quad::NTuple{S,Ptr{Cvoid}}; quadid::NTuple{S,p4est_locidx_t}; end
 iter_side_data_properties = (:full, :hanging)
 
 # Biggest data size in union (24 bytes - 192 bits)
@@ -113,7 +113,7 @@ primitive type iter_side_data_2 8*sizeof(iter_side_data_2_union) end
 function Base.getproperty(x::iter_side_data_2, name::Symbol)
     if name == :full
         _unsafe_reinterpret(full, x)
-    elseif name == :user_long
+    elseif name == :hanging
         _unsafe_reinterpret(hanging{2}, x)
     else
         getfield(x, name)
@@ -135,10 +135,10 @@ const p8est_iter_edge_side_data = iter_side_data_2
 iter_side_data_4_union = Union{full, hanging{4}}
 primitive type iter_side_data_4 8*sizeof(iter_side_data_4_union) end 
 
-function Base.getproperty(x::iter_side_data_4_union, name::Symbol)
+function Base.getproperty(x::iter_side_data_4, name::Symbol)
     if name == :full
         _unsafe_reinterpret(full, x)
-    elseif name == :user_long
+    elseif name == :hanging
         _unsafe_reinterpret(hanging{4}, x)
     else
         getfield(x, name)
@@ -147,5 +147,5 @@ end
 
 Base.propertynames(x::iter_side_data_4) = (iter_side_data_properties..., fieldnames(DataType)...)
 
-const p8est_iter_face_side_data = iter_side_data_4_union
+const p8est_iter_face_side_data = iter_side_data_4
 
